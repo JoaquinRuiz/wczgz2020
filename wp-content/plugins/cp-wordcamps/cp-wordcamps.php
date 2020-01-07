@@ -20,3 +20,22 @@ function wordcamps_cpt() {
     );
     register_post_type( 'wordcamp', $args );
 }
+
+function  add_acf_wordcamps( $request_data ) {
+  $args = array(
+      'post_type' => 'wordcamp',
+      'posts_per_page'=>-1, 
+      'numberposts'=>-1
+  );
+  $posts = get_posts($args);
+  foreach ($posts as $key => $post) {
+      $posts[$key]->acf = get_fields($post->ID);
+  }
+  return  $posts;
+}
+add_action( 'rest_api_init', function () {
+  register_rest_route( 'acf/v1', '/wordcamp/', array(
+      'methods' => 'GET',
+      'callback' => 'add_acf_wordcamps'
+  ));
+});
