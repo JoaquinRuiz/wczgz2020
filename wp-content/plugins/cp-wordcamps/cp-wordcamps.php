@@ -35,7 +35,7 @@ function  add_acf_wordcamps( $request_data ) {
 }
 
 function get_wordcamp_check( $request ) {
-  return current_user_can( 'edit_post' );
+  return current_user_can( 'edit_posts' );
 }
 
 add_action( 'rest_api_init', function () {
