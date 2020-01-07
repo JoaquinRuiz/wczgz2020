@@ -33,9 +33,15 @@ function  add_acf_wordcamps( $request_data ) {
   }
   return  $posts;
 }
+
+function get_wordcamp_check( $request ) {
+  return current_user_can( 'edit_something' );
+}
+
 add_action( 'rest_api_init', function () {
   register_rest_route( 'acf/v1', '/wordcamp/', array(
       'methods' => 'GET',
-      'callback' => 'add_acf_wordcamps'
+      'callback' => 'add_acf_wordcamps',
+      'permission_callback' => 'get_wordcamp_check',
   ));
 });
