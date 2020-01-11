@@ -62,10 +62,10 @@ function add_slug_pages($request_data) {
   $posts = get_posts();
   $categories = get_categories();
   foreach ($pages as $page) {
-    $return[] = $page->slug;
+    $return[] = $page->page_name;
   }
   foreach ($posts as $post) {
-    $return[] = $post->slug;
+    $return[] = $post->post_name;
   }
   foreach ($categories as $category) {
     $return[] = $category->slug;
