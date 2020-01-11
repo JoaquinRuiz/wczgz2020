@@ -44,13 +44,35 @@ function get_wordcamp_check($request)
 }
 
 add_action('rest_api_init', function () {
-  register_rest_route('acf/v1', '/wordcamp/', array(
+  register_rest_route('acf/v3', '/wordcamp/', array(
     'methods' => 'GET',
     'callback' => 'add_acf_wordcamps',
     'permission_callback' => 'get_wordcamp_check',
   ));
+  register_rest_route('pages/v3', '/wordcamp', array(
+    'methods' => 'GET',
+    'callback' => 'add_slug_pages',
+  ));
 });
 
+// Add slug pages endpoint
+function add_slug_pages($request_data) {
+  $return = array();
+  $pages = get_pages(); 
+  $posts = get_posts();
+  $categories = get_categories();
+  foreach ($pages as $page) {
+    $return[] = $page->slug;
+  }
+  foreach ($posts as $post) {
+    $return[] = $post->slug;
+  }
+  foreach ($categories as $category) {
+    $return[] = $category->slug;
+  }
+
+  return $return;
+}
 
 // Add prev / next to WP REST API
 add_filter('rest_prepare_post', function ($response, $post, $request) {
