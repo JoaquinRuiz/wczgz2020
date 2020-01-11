@@ -57,18 +57,18 @@ add_action('rest_api_init', function () {
 
 // Add slug pages endpoint
 function add_slug_pages($request_data) {
-  $return = array();
+  $return = array('pages', 'posts', 'categories');
   $pages = get_pages(); 
   $posts = get_posts();
   $categories = get_categories();
   foreach ($pages as $page) {
-    $return[] = $page->post_name;
+    $return['pages'][] = $page->post_name;
   }
   foreach ($posts as $post) {
-    $return[] = $post->post_name;
+    $return['posts'][] = $post->post_name;
   }
   foreach ($categories as $category) {
-    $return[] = $category->slug;
+    $return['categories'][] = $category->slug;
   }
 
   return $return;
