@@ -54,12 +54,11 @@ add_action('rest_api_init', function () {
 
 // Add prev / next to WP REST API
 add_filter('rest_prepare_post', function ($response, $post, $request) {
-  if ($request->get_param('per_page') === 1) {
-    global $post;
-    $next = get_adjacent_post(false, '', false);
-    $previous = get_adjacent_post(false, '', true);
-    $response->data['next'] = (is_a($next, 'WP_Post')) ? array("id" => $next->ID, "slug" => $next->post_name) : null;
-    $response->data['previous'] = (is_a($previous, 'WP_Post')) ? array("id" => $previous->ID, "slug" => $previous->post_name) : null;
-  }
+  global $post;
+  $next = get_adjacent_post(false, '', false);
+  $previous = get_adjacent_post(false, '', true);
+  $response->data['next'] = (is_a($next, 'WP_Post')) ? array("id" => $next->ID, "slug" => $next->post_name) : null;
+  $response->data['previous'] = (is_a($previous, 'WP_Post')) ? array("id" => $previous->ID, "slug" => $previous->post_name) : null;
+
   return $response;
 }, 10, 3);
