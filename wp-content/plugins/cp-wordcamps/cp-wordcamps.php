@@ -11,76 +11,106 @@ License: GPLv2 or later
 Text Domain: jokiruiz
 */
 
-// WordCamp Custom Post
-add_action('init', 'wordcamps_cpt');
-function wordcamps_cpt()
+
+// Custom Post "Wordcamps"
+class CustomPostWordPress
 {
-  $args = array(
-    'public'       => true,
-    'show_in_rest' => true,
-    'label'        => 'Wordcamps'
-  );
-  register_post_type('wordcamp', $args);
+  public function __construct()
+  {
+    add_action('init', array($this, 'wordcamps_cpt'));
+  }
+
+  public function wordcamps_cpt()
+  {
+    $args = array(
+      'public'       => true,
+      'show_in_rest' => true,
+      'label'        => 'Wordcamps'
+    );
+    register_post_type('wordcamp', $args);
+  }
 }
 
-// ACF WordCamp Custom REST API
-function  add_acf_wordcamps($request_data)
+$customPost = new CustomPostWordPress();
+
+
+// Custom API Rest to get Custom Post "Wordcamps" with ACF
+class CustomAPIRest
 {
-  $args = array(
-    'post_type' => 'wordcamp',
-    'posts_per_page' => -1,
-    'numberposts' => -1
-  );
-  $posts = get_posts($args);
-  foreach ($posts as $key => $post) {
-    $posts[$key]->acf = get_fields($post->ID);
+  public function __construct()
+  {
+    add_action('rest_api_init', array($this, 'register_custom_routes'));
   }
-  return  $posts;
+
+  public function register_custom_routes() 
+  {
+    register_rest_route('acf/v3', '/wordcamp', array(
+      'methods' => 'GET',
+      'callback' => array($this, 'add_acf_wordcamps'),
+      'permission_callback' => array($this, 'get_wordcamp_check'),
+    ));
+    register_rest_route('pages/v3', '/wordcamp', array(
+      'methods' => 'GET',
+      'callback' => array($this, 'add_slug_pages'),
+    ));  
+  }
+
+  public function add_acf_wordcamps($request_data)
+  {
+    $args = array(
+      'post_type' => 'wordcamp',
+      'posts_per_page' => -1,
+      'numberposts' => -1
+    );
+    $posts = get_posts($args);
+    foreach ($posts as $key => $post) {
+      $posts[$key]->acf = get_fields($post->ID);
+    }
+    return $posts;
+  }
+
+  public function get_wordcamp_check($request)
+  {
+    return current_user_can('edit_posts');
+  }
+
+  public function add_slug_pages($request_data)
+  {
+    $return = array();
+    $pages = get_pages();
+    $posts = get_posts();
+    $categories = get_categories();
+    foreach ($pages as $page) {
+      $return['pages'][] = $page->post_name;
+    }
+    foreach ($posts as $post) {
+      $return['posts'][] = $post->post_name;
+    }
+    foreach ($categories as $category) {
+      $return['categories'][] = $category->slug;
+    }
+    return $return;
+  }
+  
 }
 
-function get_wordcamp_check($request)
-{
-  return current_user_can('edit_posts');
+$customRestAPI = new CustomAPIRest();
+
+class ExtendAPIRest {
+  public function __construct()
+  {
+    add_filter('rest_prepare_post', array($this, 'add_prev_next'), 10, 3);
+  }
+
+  public function add_prev_next($response, $post, $request) {
+    global $post;
+    $next = get_adjacent_post(false, '', false);
+    $previous = get_adjacent_post(false, '', true);
+    $response->data['next'] = (is_a($next, 'WP_Post')) ? array("id" => $next->ID, "slug" => $next->post_name) : null;
+    $response->data['previous'] = (is_a($previous, 'WP_Post')) ? array("id" => $previous->ID, "slug" => $previous->post_name) : null;
+  
+    return $response;
+  }
 }
 
-add_action('rest_api_init', function () {
-  register_rest_route('acf/v3', '/wordcamp/', array(
-    'methods' => 'GET',
-    'callback' => 'add_acf_wordcamps',
-    'permission_callback' => 'get_wordcamp_check',
-  ));
-  register_rest_route('pages/v3', '/wordcamp', array(
-    'methods' => 'GET',
-    'callback' => 'add_slug_pages',
-  ));
-});
-
-// Add slug pages endpoint
-function add_slug_pages($request_data) {
-  $return = array();
-  $pages = get_pages(); 
-  $posts = get_posts();
-  $categories = get_categories();
-  foreach ($pages as $page) {
-    $return['pages'][] = $page->post_name;
-  }
-  foreach ($posts as $post) {
-    $return['posts'][] = $post->post_name;
-  }
-  foreach ($categories as $category) {
-    $return['categories'][] = $category->slug;
-  }
-
-  return $return;
-}
-
-// Add prev / next to WP REST API
-add_filter('rest_prepare_post', function ($response, $post, $request) {
-  global $post;
-  $next = get_adjacent_post(false, '', false);
-  $previous = get_adjacent_post(false, '', true);
-  $response->data['next'] = (is_a($next, 'WP_Post')) ? array("id" => $next->ID, "slug" => $next->post_name) : null;
-  $response->data['previous'] = (is_a($previous, 'WP_Post')) ? array("id" => $previous->ID, "slug" => $previous->post_name) : null;
-
-  return $response;
-}, 10, 3);
+$extendRestAPI = new ExtendAPIRest();
