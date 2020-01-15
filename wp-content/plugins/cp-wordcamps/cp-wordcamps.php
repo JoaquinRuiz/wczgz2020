@@ -106,8 +106,12 @@ class ExtendAPIRest {
     global $post;
     $next = get_adjacent_post(false, '', false);
     $previous = get_adjacent_post(false, '', true);
-    $response->data['next'] = (is_a($next, 'WP_Post')) ? array("id" => $next->ID, "slug" => $next->post_name) : null;
-    $response->data['previous'] = (is_a($previous, 'WP_Post')) ? array("id" => $previous->ID, "slug" => $previous->post_name) : null;
+    $response->data['next'] = (is_a($next, 'WP_Post')) ? 
+      array("id" => $next->ID, "slug" => $next->post_name, "title" => $next->post_title) : 
+      null;
+    $response->data['previous'] = (is_a($previous, 'WP_Post')) ? 
+      array("id" => $previous->ID, "slug" => $previous->post_name, "title" => $previous->post_title) : 
+      null;
   
     return $response;
   }
